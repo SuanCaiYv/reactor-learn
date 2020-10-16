@@ -9,6 +9,5 @@ public class TestMain {
     public static void main(String[] args) {
         // 说完了同步生成，接下来就是异步生成，还是多线程的！
         // 让我们有请:create()闪亮登场！！！
-        
     }
 }
