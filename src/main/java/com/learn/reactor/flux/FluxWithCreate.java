@@ -1,4 +1,4 @@
-package com.learn.reactor.test;
+package com.learn.reactor.flux;
 
 import reactor.core.publisher.Flux;
 
@@ -10,7 +10,7 @@ import java.util.UUID;
  * @author SuanCaiYv
  * @time 2020/10/8 下午5:16
  */
-public class TestMain {
+public class FluxWithCreate {
 
     public static void main(String[] args) {
         // 说完了同步生成，接下来就是异步生成，还是多线程的！
