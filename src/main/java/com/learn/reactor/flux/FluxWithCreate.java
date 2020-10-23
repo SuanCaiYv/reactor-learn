@@ -4,7 +4,6 @@ import reactor.core.publisher.Flux;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 /**
  * @author SuanCaiYv
@@ -12,7 +11,7 @@ import java.util.UUID;
  */
 public class FluxWithCreate {
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InterruptedException {
         // 说完了同步生成，接下来就是异步生成，还是多线程的！
         // 让我们有请:create()闪亮登场！！！
         // create()方法对外暴露出一个FluxSink对象，通过它我们可以访问并生成需要的序列。
@@ -65,10 +64,9 @@ public class FluxWithCreate {
             public void run() {
                 List<String> list = new ArrayList<>(10);
                 for (int i = 0; i < 10; ++ i) {
-                    list.add(UUID.randomUUID().toString());
+                    list.add(i+"-run1");
                 }
                 testListener.onChunk(list);
-                testListener.onComplete();
             }
         };
         Runnable1<String> runnable2 = new Runnable1<>() {
@@ -84,10 +82,9 @@ public class FluxWithCreate {
             public void run() {
                 List<String> list = new ArrayList<>(10);
                 for (int i = 0; i < 10; ++ i) {
-                    list.add(UUID.randomUUID().toString());
+                    list.add(i+"-run2");
                 }
                 testListener.onChunk(list);
-                testListener.onComplete();
             }
         };
         Runnable1<String> runnable3 = new Runnable1<>() {
@@ -103,10 +100,9 @@ public class FluxWithCreate {
             public void run() {
                 List<String> list = new ArrayList<>(10);
                 for (int i = 0; i < 10; ++ i) {
-                    list.add(UUID.randomUUID().toString());
+                    list.add(i+"-run3");
                 }
                 testListener.onChunk(list);
-                testListener.onComplete();
             }
         };
         runnable1.set(testListener);
@@ -116,6 +112,8 @@ public class FluxWithCreate {
         new Thread(runnable1).start();
         new Thread(runnable2).start();
         new Thread(runnable3).start();
+        Thread.sleep(1000);
+        testListener.onComplete();
         // 另一方面，create的另一个变体可以设置参数来实现负压控制，具体看源码。
     }
     public interface TestListener<T> {

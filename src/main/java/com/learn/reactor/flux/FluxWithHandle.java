@@ -1,4 +1,4 @@
-package com.learn.reactor.test;
+package com.learn.reactor.flux;
 
 import reactor.core.publisher.Flux;
 
@@ -8,7 +8,7 @@ import java.util.UUID;
  * @author SuanCaiYv
  * @time 2020/10/8 下午5:16
  */
-public class TestMain {
+public class FluxWithHandle {
 
     public static void main(String[] args) {
         // 在Flux的实例方法里，还有一种类似filter和map的操作：handle
