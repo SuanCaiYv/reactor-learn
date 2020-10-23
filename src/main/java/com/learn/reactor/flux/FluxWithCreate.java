@@ -112,6 +112,7 @@ public class FluxWithCreate {
         runnable1.set(testListener);
         runnable2.set(testListener);
         runnable3.set(testListener);
+        // create所谓的"异步"，"多线程"指的是在多线程中调用sink.next()方法。这一点在下面的push对比中可以看到
         new Thread(runnable1).start();
         new Thread(runnable2).start();
         new Thread(runnable3).start();
