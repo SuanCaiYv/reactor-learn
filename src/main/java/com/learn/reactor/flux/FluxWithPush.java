@@ -71,6 +71,8 @@ public class FluxWithPush {
         Thread.sleep(15);
         testListener.onComplete();
         // 同create一样，push也支持负压调节
+        // 但是我没写出来，我试过的Demo都是直接请求Long.MAX_VALUE，其实就是通过sink.onRequest(LongConsumer)方法调用来实现负压控制的。
+        // 原理在这，想深究的请自行探索，鄙人不才，花费一下午没实现。
     }
 
     public interface TestListener<T> {
