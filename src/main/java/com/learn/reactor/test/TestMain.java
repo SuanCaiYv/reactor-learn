@@ -52,12 +52,69 @@ public class TestMain {
         flux.subscribe(System.out::println);
         System.out.println("现在是2020/10/22 22:58；我好困");
         TestListener<String> testListener = testProcessor.get();
-        List<String> list = new ArrayList<>(10);
-        for (int i = 0; i < 10; ++ i) {
-            list.add(UUID.randomUUID().toString());
-        }
-        testListener.onChunk(list);
-        testListener.onComplete();
+        Runnable1<String> runnable1 = new Runnable1<>() {
+
+            private TestListener<String> testListener;
+
+            @Override
+            public void set(TestListener<String> testListener) {
+                this.testListener = testListener;
+            }
+
+            @Override
+            public void run() {
+                List<String> list = new ArrayList<>(10);
+                for (int i = 0; i < 10; ++ i) {
+                    list.add(UUID.randomUUID().toString());
+                }
+                testListener.onChunk(list);
+                testListener.onComplete();
+            }
+        };
+        Runnable1<String> runnable2 = new Runnable1<>() {
+
+            private TestListener<String> testListener;
+
+            @Override
+            public void set(TestListener<String> testListener) {
+                this.testListener = testListener;
+            }
+
+            @Override
+            public void run() {
+                List<String> list = new ArrayList<>(10);
+                for (int i = 0; i < 10; ++ i) {
+                    list.add(UUID.randomUUID().toString());
+                }
+                testListener.onChunk(list);
+                testListener.onComplete();
+            }
+        };
+        Runnable1<String> runnable3 = new Runnable1<>() {
+
+            private TestListener<String> testListener;
+
+            @Override
+            public void set(TestListener<String> testListener) {
+                this.testListener = testListener;
+            }
+
+            @Override
+            public void run() {
+                List<String> list = new ArrayList<>(10);
+                for (int i = 0; i < 10; ++ i) {
+                    list.add(UUID.randomUUID().toString());
+                }
+                testListener.onChunk(list);
+                testListener.onComplete();
+            }
+        };
+        runnable1.set(testListener);
+        runnable2.set(testListener);
+        runnable3.set(testListener);
+        new Thread(runnable1).start();
+        new Thread(runnable2).start();
+        new Thread(runnable3).start();
         // 另一方面，create的另一个变体可以设置参数来实现负压控制，具体看源码。
     }
     public interface TestListener<T> {
@@ -72,5 +129,9 @@ public class TestMain {
         void register(TestListener<T> tTestListener);
 
         TestListener<T> get();
+    }
+
+    public interface Runnable1<T> extends Runnable {
+         void set(TestListener<T> testListener);
     }
 }
