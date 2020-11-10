@@ -1,10 +1,13 @@
-package com.learn.reactor.test;
+package com.learn.reactor.flux;
 
 import reactor.core.publisher.Flux;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
-public class Main {
+/**
+ * @author Mr.M
+ */
+public class FluxWithPublishOnSubscribeOn {
 
     public static void main(String[] args) throws InterruptedException {
         // 来看看publishOn()和subscribeOn()方法。
