@@ -1,12 +1,11 @@
-package com.learn.reactor.test;
+package com.learn.reactor.flux;
 
 import reactor.core.scheduler.Schedulers;
 
 /**
- * @author SuanCaiYv
- * @time 2020/10/8 下午5:16
+ * @author Mr.M
  */
-public class TestMain {
+public class FluxWithSchedulers {
 
     public static void main(String[] args) throws InterruptedException {
         // 一般来说，响应式框架都不支持并发，P.s. create那个是生产者并发，它本身不是并发的。

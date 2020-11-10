@@ -22,7 +22,7 @@ public class FluxWithGenerate {
             return state+1;
         }).subscribe(System.out::println);
         // 通过上述代码不难看到，每次的接收器接受的值来自于上一次生成方法的返回值，也就是state=上一个迭代的返回值(其实称为上一个流才准确，这么说只是为了方便理解)。
-        // 不过这个state每次都是一个全新的(每次都+1当然是新的)，那么有没有什么方法可以做到前后两次迭代的state是同一个引用且还可以更新值呢？答案就是原子类型。-
+        // 不过这个state每次都是一个全新的(每次都+1当然是新的)，那么有没有什么方法可以做到前后两次迭代的state是同一个引用且还可以更新值呢？答案就是原子类型。
         // generate方法的第三个参数用于结束生成时被调用，消耗state。
         Flux.generate(AtomicInteger::new, (state, sink) -> {
             sink.next(state.getAndIncrement()+"qwer");
