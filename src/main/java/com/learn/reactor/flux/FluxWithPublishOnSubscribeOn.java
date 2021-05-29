@@ -1,8 +1,14 @@
 package com.learn.reactor.flux;
 
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
+
+import java.util.function.Supplier;
 
 /**
  * @author Mr.M
@@ -12,15 +18,21 @@ public class FluxWithPublishOnSubscribeOn {
     public static void main(String[] args) throws InterruptedException {
         // 来看看publishOn()和subscribeOn()方法。
         // publishOn()就和普通操作一样，添加在操作链的中间，它会影响在它下面的所有操作的执行上下文。看个例子：
-        Scheduler s = Schedulers.newParallel("parallel-scheduler", 4);
+        Scheduler scheduler = Schedulers.newParallel("parallel-scheduler", 4);
         final Flux<String> flux = Flux
                 .range(1, 2)
                 // map肯定是跑在T上的。
-                .map(i -> 10 + i)
+                .map(i -> {
+                    System.out.println(Thread.currentThread().getName());
+                    return 10 + i;
+                })
                 // 此时的执行上下文被切换到了并行线程
-                .publishOn(s)
+                .publishOn(scheduler)
                 // 这个map还是跑在并行线程上的，因为publishOn()的后面的操作都被切换到了另一个执行上下文中。
-                .map(i -> "value " + i);
+                .map(i -> {
+                    System.out.println(Thread.currentThread().getName());
+                    return "value " + i;
+                });
         // 假设这个new出来的线程名为T
         new Thread(() -> flux.subscribe(System.out::println));
         // subscribeOn()方法会把订阅之后的整个订阅链都切换到新的执行上下文中。
@@ -32,11 +44,38 @@ public class FluxWithPublishOnSubscribeOn {
                 // 不过这里的map就已经在ss里跑了
                 .map(i -> 10 + i)
                 // 这里切换，但是切换的是整个链
-                .subscribeOn(s)
+                .subscribeOn(scheduler)
                 // 这里的map也运行在ss上
                 .map(i -> "value " + i);
         // 这是一个匿名线程TT
         new Thread(() -> fluxflux.subscribe(System.out::println));
+        Supplier<String> supplier = () -> {
+            return "asdf";
+        };
+        Publisher<String> publisher = s1 -> {
+            Subscription subscription = new BaseSubscriber<>() {
+                @Override
+                protected void hookOnSubscribe(Subscription subscription) {
+                    request(1);
+                }
+
+                @Override
+                protected void hookOnNext(Object value) {
+                    // 仅请求一次就够了，所以下一次请求直接"完成"
+                    onComplete();
+                }
+
+                @Override
+                protected void hookOnComplete() {
+                    // 此时不作任何处理
+                }
+            };
+            s1.onSubscribe(subscription);
+            s1.onNext("zxcv");
+            s1.onComplete();
+        };
+        Mono.fromSupplier(supplier).subscribe(System.out::println);
+        Mono.from(publisher).subscribe(System.out::println);
         Thread.sleep(1000);
     }
 }
