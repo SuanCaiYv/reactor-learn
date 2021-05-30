@@ -8,6 +8,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Scheduler;
 import reactor.core.scheduler.Schedulers;
 
+import java.time.Duration;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Supplier;
 
 /**
@@ -36,6 +38,7 @@ public class FluxWithPublishOnSubscribeOn {
         // 假设这个new出来的线程名为T
         new Thread(() -> flux.subscribe(System.out::println));
         // subscribeOn()方法会把订阅之后的整个订阅链都切换到新的执行上下文中。
+        // 这里的整个链包含Publisher发布者发布消息的线程也被一并切换了，也就是说整个的流水线都被切换到新的线程执行
         // 无论在subscribeOn()哪里，都可以把最前面的订阅之后的订阅序列进行切换，当然了，如果后面还有publishOn()，publishOn()会进行新的切换。
         // 依旧是创建一个并行线程
         Scheduler ss = Schedulers.newParallel("parallel-scheduler", 4);
@@ -76,6 +79,37 @@ public class FluxWithPublishOnSubscribeOn {
         };
         Mono.fromSupplier(supplier).subscribe(System.out::println);
         Mono.from(publisher).subscribe(System.out::println);
-        Thread.sleep(1000);
+
+        // better example
+
+        Mono.fromCallable(() -> {
+            System.out.println("publish   run on the thread: " + Thread.currentThread().getName());
+            LockSupport.parkNanos(Duration.ofMillis(3000).toNanos());
+            return "aaa";
+        })
+                .map(p1 -> {
+                    System.out.println("map1      run on the thread: " + Thread.currentThread().getName());
+                    return "bbb";
+                })
+                .map(p2 -> {
+                    System.out.println("map2      run on the thread: " + Thread.currentThread().getName());
+                    return "ccc";
+                })
+                .publishOn(Schedulers.boundedElastic())
+                .map(p3 -> {
+                    System.out.println("map3      run on the thread: " + Thread.currentThread().getName());
+                    return "ddd";
+                })
+                .map(p4 -> {
+                    System.out.println("map4      run on the thread: " + Thread.currentThread().getName());
+                    return "eee";
+                })
+                .subscribeOn(Schedulers.boundedElastic())
+                .subscribe(item -> {
+                    System.out.println("subscribe run on the thread: " + Thread.currentThread().getName());
+                    System.out.println(item);
+                });
+        System.out.println("run");
+        LockSupport.parkNanos(Duration.ofMillis(5000).toNanos());
     }
 }
