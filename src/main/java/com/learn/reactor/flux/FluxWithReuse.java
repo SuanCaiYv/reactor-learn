@@ -82,6 +82,8 @@ public class FluxWithReuse {
         // transform的装配发生在书写时，transformDeferred的装配发生在订阅时；所以有几次订阅就有几次transformDeferred，而只有一次transform
         // transform和transformDeferred的顺序和位置不影响以上规则
         // 对于transform，只要你写了，它的装配就是立刻发生的，而transformDeferred则只有当你订阅时才会发生装配，每次订阅都会装配
+        // 流水线一旦装配完成，就是不可更改的，无论数据源发送几次，都会使用同一个流水线，所以自始至终装配完成的流水线只会被流经数据，而不会被二次触发
+        // 所以tramsform无论订阅多少次，只会被调用一次，
         flux3.subscribe(p1 -> {
             System.out.println("subscribe5: " + p1);
         });
