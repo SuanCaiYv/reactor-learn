@@ -2,8 +2,10 @@ package com.learn.reactor.flux;
 
 import reactor.core.publisher.Flux;
 
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.LockSupport;
 import java.util.function.Function;
 
 /**
@@ -30,23 +32,32 @@ public class FluxWithReuse {
 
     public static void main(String[] args) {
         AtomicInteger atomicInteger1 = new AtomicInteger(0);
+
         Function<Flux<String>, Flux<String>> t1 = input -> {
-            System.out.println("int1: " + atomicInteger1.get());
-            atomicInteger1.incrementAndGet();
+            System.out.println("curr1: " + System.currentTimeMillis());
+            System.out.println("int1: " + atomicInteger1.getAndIncrement());
             return input.map(p1 -> p1.toUpperCase());
         };
+
         AtomicInteger atomicInteger2 = new AtomicInteger(0);
+
         Function<Flux<String>, Flux<String>> t2 = input -> {
-            System.out.println("int2: " + atomicInteger2.get());
-            atomicInteger2.incrementAndGet();
+            System.out.println("curr2: " + System.currentTimeMillis());
+            System.out.println("--------int2: " + atomicInteger2.getAndIncrement());
             return input.map(p1 -> (p1 + "_new").toUpperCase());
         };
+
+        AtomicInteger atomicInteger3 = new AtomicInteger(0);
+
         Flux<String> flux0 = Flux.push(fluxSink -> {
+            System.out.println("----------------int3: " + atomicInteger3.getAndIncrement());
             fluxSink.next(UUID.randomUUID().toString().substring(0, 5));
             fluxSink.complete();
         });
+
         Flux<String> flux1 = flux0.transform(t1);
         Flux<String> flux2 = flux0.transformDeferred(t1);
+
         flux1.subscribe(p1 -> {
             System.out.println("subscribe1: " + p1);
         });
@@ -59,9 +70,18 @@ public class FluxWithReuse {
         flux2.subscribe(p4 -> {
             System.out.println("subscribe4: " + p4);
         });
-        System.out.println("----------------");
+
+        System.out.println("#######################");
+
+        System.out.println("curr: " + System.currentTimeMillis());
         Flux<String> flux3 = flux0.transform(t1).transformDeferred(t2);
         Flux<String> flux4 = flux0.transformDeferred(t1).transform(t2);
+        LockSupport.parkNanos(Duration.ofMillis(300).toNanos());
+
+        // 输出的int2: 0对应flux4的transform，而不是flux3的
+        // transform的装配发生在书写时，transformDeferred的装配发生在订阅时；所以有几次订阅就有几次transformDeferred，而只有一次transform
+        // transform和transformDeferred的顺序和位置不影响以上规则
+        // 对于transform，只要你写了，它的装配就是立刻发生的，而transformDeferred则只有当你订阅时才会发生装配，每次订阅都会装配
         flux3.subscribe(p1 -> {
             System.out.println("subscribe5: " + p1);
         });
